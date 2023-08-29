@@ -506,7 +506,7 @@ int rx_streamer::start(const int flags,
 
 	direct_copy = has_direct_copy();
 
-	SoapySDR_logf(SOAPY_SDR_INFO, "Has direct RX copy: %d", (int)direct_copy);
+	SoapySDR_logf(SOAPY_SDR_DEBUG, "Has direct RX copy: %d", (int)direct_copy);
 
 	return 0;
 

@@ -10,14 +10,40 @@
 static std::vector<SoapySDR::Kwargs> results;
 static std::vector<SoapySDR::Kwargs> find_PlutoSDR(const SoapySDR::Kwargs &args) {
 
-	if (!results.empty())
-		return results;
-
 	ssize_t ret = 0;
 	iio_context *ctx = nullptr;
 	iio_scan_context *scan_ctx;
 	iio_context_info **info;
 	SoapySDR::Kwargs options;
+
+	if (args.count("hostname") != 0) {
+		ctx = iio_create_network_context(args.at("hostname").c_str());
+		if (ctx != nullptr)	{
+			iio_context_destroy(ctx);
+
+			// If a Pluto+ device exist at the specified IP address, we use only the IP backend as
+			// Pluto+ ethernet interface is more efficient than the legacy USB.
+			options["device"] = "PlutoSDR";
+			options["hostname"] = args.at("hostname");
+			options["hw"] = "Pluto+";
+
+			std::ostringstream label_str;
+			label_str << options["device"] << " #0 " << options["hostname"];
+			options["label"] = label_str.str();
+
+			std::vector<SoapySDR::Kwargs> result;
+			result.push_back(options);
+
+			return result;
+		}
+		else {
+			SoapySDR_logf(SOAPY_SDR_WARNING, "No Pluto+ at configured IP address %s, "
+					"USB will be used instead of ethernet", args.at("hostname").c_str());
+		}
+	}
+
+	if (!results.empty())
+		return results;
 
 	// Backends can error, scan each one individually
 	// The filtered "usb" backend is available starting from Libiio 0.24
@@ -86,39 +112,18 @@ static std::vector<SoapySDR::Kwargs> find_PlutoSDR(const SoapySDR::Kwargs &args)
 		ret = iio_scan_context_get_info_list(scan_ctx, &info);
 		if (ret < 0) {
 			SoapySDR_logf(SOAPY_SDR_WARNING, "Unable to scan %s: %li\n", it->c_str(), (long)ret);
-			iio_context_info_list_free(info);
-			iio_scan_context_destroy(scan_ctx);
-			continue;
+
 		}
-
-		options["device"] = "PlutoSDR";
-		if (ret == 0) {
-			iio_context_info_list_free(info);
-			iio_scan_context_destroy(scan_ctx);
-
-			//no devices discovered, the user must specify a hostname
-			if (args.count("hostname") == 0) continue;
-
-			//try to connect at the specified hostname
-			ctx = iio_create_network_context(args.at("hostname").c_str());
-			if (ctx == nullptr) continue; //failed to connect
-			options["hostname"] = args.at("hostname");
-
-			std::ostringstream label_str;
-			label_str << options["device"] << " #0 " << options["hostname"];
-			options["label"] = label_str.str();
-
-			results.push_back(options);
-			if (ctx != nullptr) iio_context_destroy(ctx);
-
-		} else {
+		else if (ret > 0) {
+			options["device"] = "PlutoSDR";
+			options["hw"] = "ADALM-PLUTO";
 			for (int i = 0; i < ret; i++) {
 				ctx = iio_create_context_from_uri(iio_context_info_get_uri(info[i]));
 				if (ctx != nullptr) {
 					options["uri"] = std::string(iio_context_info_get_uri(info[i]));
 
 					// check if discovered libiio context can be a PlutoSDR (and not some other sensor),
-          // it must contain "ad9361-phy", "cf-ad9361-lpc" and "cf-ad9361-dds-core-lpc" devices
+					// it must contain "ad9361-phy", "cf-ad9361-lpc" and "cf-ad9361-dds-core-lpc" devices
 					iio_device *dev = iio_context_find_device(ctx, "ad9361-phy");
 					iio_device *rx_dev = iio_context_find_device(ctx, "cf-ad9361-lpc");
 					iio_device *tx_dev = iio_context_find_device(ctx, "cf-ad9361-dds-core-lpc");
@@ -136,12 +141,11 @@ static std::vector<SoapySDR::Kwargs> find_PlutoSDR(const SoapySDR::Kwargs &args)
 
 					if (ctx != nullptr) iio_context_destroy(ctx);
 				}
-
 			}
-			iio_context_info_list_free(info);
-			iio_scan_context_destroy(scan_ctx);
 		}
 
+		iio_context_info_list_free(info);
+		iio_scan_context_destroy(scan_ctx);
 	}
 	return results;
 }

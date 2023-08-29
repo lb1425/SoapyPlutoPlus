@@ -1,10 +1,10 @@
-# Soapy SDR module for Pluto SDR
+# Soapy SDR module for Pluto+
 
 ## Installation instructions
 
 ```
-git clone https://github.com/pothosware/SoapyPlutoSDR
-cd SoapyPlutoSDR
+git clone  https://github.com/lb1425/SoapyPlutoPlus.git
+cd SoapyPlutoPlus
 mkdir build
 cd build
 cmake ..
