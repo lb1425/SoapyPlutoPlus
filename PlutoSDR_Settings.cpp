@@ -10,8 +10,6 @@ SoapyPlutoSDR::SoapyPlutoSDR( const SoapySDR::Kwargs &args ):
 {
 
 	gainMode = false;
-	if (args.count("hw") != 0)
-		hw = args.at("hw");
 
 	if (args.count("label") != 0)
 		SoapySDR_logf( SOAPY_SDR_INFO, "Opening %s...", args.at("label").c_str());
@@ -131,7 +129,7 @@ std::string SoapyPlutoSDR::getDriverKey( void ) const
 
 std::string SoapyPlutoSDR::getHardwareKey( void ) const
 {
-	return hw;
+	return "ADALM-PLUTO";
 }
 
 SoapySDR::Kwargs SoapyPlutoSDR::getHardwareInfo( void ) const

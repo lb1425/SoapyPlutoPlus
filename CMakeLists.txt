@@ -74,7 +74,7 @@ if(LibUSB_FOUND)
     include_directories(${LibUSB_INCLUDE_DIRS})
     add_definitions(-DHAS_LIBUSB1)
     #disable warnings for libusb.h
-    add_compile_options($<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-zero-length-array>)
+    add_compile_options($<$<CXX_COMPILER_ID:GNU>:-Wno-zero-length-array>)
 endif()
 
 

@@ -324,7 +324,6 @@ class SoapyPlutoSDR : public SoapySDR::Device{
 		std::unique_ptr<rx_streamer> rx_stream;
         std::unique_ptr<tx_streamer> tx_stream;
 
-        std::string hw;
         
 };
 
