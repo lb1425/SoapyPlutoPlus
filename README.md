@@ -2,11 +2,15 @@
 
 ## Installation instructions
 
+First install dependencies.
 ```
 sudo apt install libiio-dev
 sudo apt install libad9361-dev
 sudo apt install libusb-1.0-0-dev
 sudo apt install libsoapysdr-dev
+```
+Then build the SoapySDR driver
+```
 git clone  https://github.com/lb1425/SoapyPlutoPlus.git
 cd SoapyPlutoPlus
 mkdir build
